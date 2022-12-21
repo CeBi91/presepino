@@ -1,74 +1,52 @@
-int DEL = 100;
-int DEL2 = 20;
-int t=DEL;
+#include <FastLED.h>
 
-
-int led_fire = 6;
-int led_dawn =9;
-int led_day = 10;
-int led_sunset = 11;
-
-int brightness = 0;   
-int brig1 = 0;
-int brig2 = 0;
-int brig3 = 0;
-int i=0;
-
-void setup() {
-  
-  pinMode(led_fire, OUTPUT);
-  pinMode(led_dawn, OUTPUT);
-  pinMode(led_day, OUTPUT);
-  pinMode(led_sunset, OUTPUT);
+#define NUM_LEDS 120
+#define LED_PIN 6
+#define LED_FIRE 9
+ 
+CRGB leds[NUM_LEDS];
+ 
+uint8_t paletteIndex = 0;
+int brightness = 0; 
+ 
+DEFINE_GRADIENT_PALETTE ( heatmap_gp ) {
+      0,    0,  0,  150,  // blu
+    20,  100,  0,  255,  // violaceo
+    60,  240, 0, 255,
+    80,  255, 255,   0,  // giallo acceso
+    150,  100, 100, 255,   // azzurro
+    200,  255, 255, 0,   // sole
+    220,  240, 130, 20,   // arancione
+    255,  0, 0, 150,   // blu
+};
+ 
+CRGBPalette16 myPal = heatmap_gp;
+ 
+void setup() {  
+    pinMode(LED_FIRE, OUTPUT);
+  FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
+  FastLED.setBrightness(20);   // up to 255
 }
-
-// the loop routine runs over and over again forever:
+ 
 void loop() {
-
-    //Alba
-    for(brig1=0;brig1<255;brig1++){
-      analogWrite(led_dawn, brig1);
-      if(brig1==100){t=DEL2;}
-      delay(t);
-      //if(brig1==100){analogWrite(led_fire,0);}
+  fill_palette(leds, NUM_LEDS, paletteIndex, 255 / NUM_LEDS, myPal, 255, LINEARBLEND);
+ 
+  FastLED.show();
+  
+  EVERY_N_MILLISECONDS(200) {
+    paletteIndex++;
+  }
+  if(paletteIndex%255 == 0){
+    for(int i=0;i<500;i++){
+        fire();
     }
-    t=DEL;
-
-    //Giorno
-    for(brig2=0;brig2<255;brig2++){
-      analogWrite(led_day, brig2);
-      analogWrite(led_dawn, brig1);
-      if(brig1!=0){brig1--;}
-      if(brig2==100){t=DEL2;}
-      delay(t);
-    }
-    t=DEL;
-    analogWrite(led_dawn, 0);
-
-    //Tramonto
-    for(brig3=0;brig3<255;brig3++){
-      analogWrite(led_sunset, brig3);
-      analogWrite(led_day, brig2);
-      if(brig3==100){t=DEL2;}
-      if(brig2!=0){brig2--;}
-      delay(t);
-    }
-    t=DEL;
-    analogWrite(led_day, 0);
-
-    //Notte
-    for(i=0;i<1000;i++){
-      analogWrite(led_sunset, brig3);
-      if(brig3!=0){brig3--;}
-      fire();
-      //delay(t);
-    }
-    analogWrite(led_fire,0);
-   
+    analogWrite(LED_FIRE,0);
+  }
 }
+
 
 void fire(){
    brightness=random(10,255);
-   analogWrite(led_fire, brightness);
+   analogWrite(LED_FIRE, brightness);
    delay(random(30,70));
   }
